@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gen Z Camera - Big Frame & Camera</title>
+    <title>Gen Z Camera - Big Polaroid Frame</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
@@ -16,41 +16,42 @@
             min-height: 100vh; overflow: hidden; font-family: sans-serif; color: white; 
         }
 
-        /* Phóng to khung chứa tổng thể để mọi thứ to bự, rõ nét hơn */
         .container { 
             position: relative; 
             width: 95vw; 
-            max-width: 1050px; /* Tăng độ rộng tối đa giúp khung to hết cỡ */
-            aspect-ratio: 16 / 10; /* Tỷ lệ ngang cân đối cho khung Polaroid lớn */
+            max-width: 900px; 
+            aspect-ratio: 16 / 10; 
             display: flex; 
             justify-content: center; 
             align-items: center; 
             overflow: hidden; 
+            background: #000;
+            border-radius: 20px;
         }
 
         video { display: none; }
 
-        /* Màn hình camera bên trong được phóng to, khớp với ô trắng to của khung */
+        /* Màn hình camera (canvas) được đặt chuẩn xác nằm lọt thỏm vào ô trắng của khung to */
         canvas { 
             position: absolute;
-            top: 14%;   /* Canh chỉnh dịch sát lên trên một chút cho khớp ô trắng */
-            left: 13%;  /* Canh lề trái khớp ô trắng */
-            width: 74%; /* Phóng to chiều rộng camera to ra */
-            height: 70%;/* Phóng to chiều cao camera to ra */
+            top: 28%;   
+            left: 31%;  
+            width: 38%; 
+            height: 44%;
             object-fit: cover; 
             transform: scaleX(-1); 
-            border-radius: 8px; 
+            border-radius: 4px; 
             z-index: 1; 
         }
         
-        /* Hiệu ứng biểu cảm/tay hiển thị to rõ ở giữa vùng camera */
+        /* Hiệu ứng biểu cảm/tay hiển thị bên trong vùng camera */
         #overlay-img { 
             position: absolute; 
             top: 50%; left: 50%; 
             transform: translate(-50%, -50%); 
-            max-width: 55%; max-height: 55%; 
+            max-width: 30%; max-height: 30%; 
             display: none; 
-            border-radius: 12px; 
+            border-radius: 8px; 
             pointer-events: none; 
             opacity: 0; 
             transition: opacity 0.05s ease-in-out; 
@@ -58,13 +59,15 @@
         }
         #overlay-img.show { display: block; opacity: 1; }
         
-        /* Khung Polaroid bọc ngoài cùng: To bự, rõ nét, đè lên trên camera */
+        /* KHUNG POLAROID: Đã phóng to lên 230% bọc ra bên ngoài camera */
         #frame-img { 
             position: absolute; 
-            top: 0; left: 0; 
-            width: 100%; 
-            height: 100%; 
-            object-fit: contain; /* Giữ trọn vẹn toàn bộ chi tiết khung to không bị méo */
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%);
+            width: 230%;  /* Phóng to khung bự vượt trội hơn hẳn */
+            height: 230%; 
+            object-fit: contain; 
             pointer-events: none; 
             z-index: 3; 
         }
@@ -82,11 +85,11 @@
             z-index: 4; 
         }
 
-        /* Tối ưu khi xem trên điện thoại dọc */
         @media (max-width: 768px) {
             .container {
-                width: 98vw;
-                aspect-ratio: 1 / 1.1; /* Tự co giãn dọc hợp lý trên màn hình điện thoại */
+                width: 100vw;
+                height: 100vh;
+                border-radius: 0;
             }
         }
     </style>
@@ -96,13 +99,13 @@
 <div class="container">
     <video id="webcam" autoplay playsinline></video>
     
-    <!-- Canvas camera nằm to bự ở dưới khung -->
+    <!-- Canvas camera nằm bên dưới khung -->
     <canvas id="output_canvas"></canvas>
     
     <!-- Ảnh hiệu ứng biểu cảm -->
     <img id="overlay-img" src="" alt="Effect">
     
-    <!-- Khung Polaroid to bự bọc ngoài -->
+    <!-- Khung Polaroid phóng to bọc ngoài -->
     <img id="frame-img" src="khung.png" alt="Frame">
     
     <div id="status">ĐANG KHỞI ĐỘNG CAMERA...</div>
