@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gen Z Camera - Responsive Frame</title>
+    <title>Gen Z Camera - Perfect Frame Overlay</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
@@ -16,31 +16,31 @@
             min-height: 100vh; overflow: hidden; font-family: sans-serif; color: white; 
         }
 
-        /* Khung chứa tổng thể thích ứng mọi màn hình */
+        /* Khung chứa chuẩn tỷ lệ ngang (4:3 hoặc 16:10 phù hợp với khung Polaroid) */
         .container { 
             position: relative; 
-            width: 95vw; 
-            height: 95vh; 
-            max-width: 1100px; 
-            max-height: 750px; 
+            width: 90vw; 
+            max-width: 900px; 
+            aspect-ratio: 4 / 3; /* Cố định tỷ lệ giúp khung và camera khớp hoàn hảo */
             display: flex; 
             justify-content: center; 
             align-items: center; 
             overflow: hidden; 
             border-radius: 24px; 
             background: #111827; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6); 
         }
 
         video { display: none; }
 
-        /* Canvas hiển thị camera tự động ôm khít khung */
+        /* Canvas hiển thị camera lấp đầy 100% khung chứa */
         canvas { 
+            position: absolute;
+            top: 0; left: 0;
             width: 100%; 
             height: 100%; 
             object-fit: cover; 
             transform: scaleX(-1); 
-            border-radius: 20px; 
         }
         
         /* Hiệu ứng biểu cảm/tay xuất hiện bên trong */
@@ -48,7 +48,7 @@
             position: absolute; 
             top: 50%; left: 50%; 
             transform: translate(-50%, -50%); 
-            max-width: 70%; max-height: 70%; 
+            max-width: 65%; max-height: 65%; 
             display: none; 
             border-radius: 12px; 
             pointer-events: none; 
@@ -58,12 +58,12 @@
         }
         #overlay-img.show { display: block; opacity: 1; }
         
-        /* Khung trang trí (khung.png) luôn giữ chuẩn tỷ lệ, không bao giờ bị dẹt */
+        /* Khung trang trí bọc bên ngoài phủ kín tuyệt đối container */
         #frame-img { 
             position: absolute; 
             top: 0; left: 0; 
             width: 100%; height: 100%; 
-            object-fit: contain; /* Cốt lõi giúp ảnh không bị bóp méo ở mọi tỷ lệ màn hình */
+            object-fit: fill; /* Phủ kín hoàn toàn khung chứa mà không để khoảng trống */
             pointer-events: none; 
             z-index: 3; 
         }
@@ -81,13 +81,14 @@
             z-index: 4; 
         }
 
-        /* Tối ưu riêng cho màn hình điện thoại (Dọc) */
+        /* Tối ưu cho màn hình điện thoại (Dọc) */
         @media (max-width: 768px) {
             .container {
                 width: 100vw;
                 height: 100vh;
                 max-width: 100%;
-                max-height: 100%;
+                aspect-ratio: auto;
+                height: 100dvh;
                 border-radius: 0;
             }
             #status {
@@ -107,7 +108,7 @@
     <!-- Ảnh hiệu ứng biểu cảm -->
     <img id="overlay-img" src="" alt="Effect">
     
-    <!-- Khung Polaroid trang trí -->
+    <!-- Khung Polaroid bọc ngoài -->
     <img id="frame-img" src="khung.png" alt="Frame">
     
     <div id="status">ĐANG KHỞI ĐỘNG CAMERA...</div>
