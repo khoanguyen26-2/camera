@@ -3,25 +3,99 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gen Z Camera - Final Smooth & Sensitive</title>
+    <title>Gen Z Camera - Responsive Frame</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
     
     <style>
-        body { margin: 0; padding: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; font-family: sans-serif; color: white;}
-        .container { position: relative; width: 100%; max-width: 900px; aspect-ratio: 16/9; overflow: hidden; border-radius: 20px; background: #1a1a1a; box-shadow: 0 0 40px rgba(0,0,0,0.6); }
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; padding: 0; background-color: #0b0f19; 
+            display: flex; justify-content: center; align-items: center; 
+            min-height: 100vh; overflow: hidden; font-family: sans-serif; color: white; 
+        }
+
+        /* Khung chứa tổng thể thích ứng mọi màn hình */
+        .container { 
+            position: relative; 
+            width: 95vw; 
+            height: 95vh; 
+            max-width: 1100px; 
+            max-height: 750px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            overflow: hidden; 
+            border-radius: 24px; 
+            background: #111827; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+        }
+
         video { display: none; }
-        canvas { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); border-radius: 20px; }
+
+        /* Canvas hiển thị camera tự động ôm khít khung */
+        canvas { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+            transform: scaleX(-1); 
+            border-radius: 20px; 
+        }
         
-        /* Hiệu ứng biểu cảm/tay */
-        #overlay-img { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 80%; max-height: 80%; display: none; border-radius: 12px; pointer-events: none; opacity: 0; transition: opacity 0.05s ease-in-out; z-index: 2; }
+        /* Hiệu ứng biểu cảm/tay xuất hiện bên trong */
+        #overlay-img { 
+            position: absolute; 
+            top: 50%; left: 50%; 
+            transform: translate(-50%, -50%); 
+            max-width: 70%; max-height: 70%; 
+            display: none; 
+            border-radius: 12px; 
+            pointer-events: none; 
+            opacity: 0; 
+            transition: opacity 0.05s ease-in-out; 
+            z-index: 2; 
+        }
         #overlay-img.show { display: block; opacity: 1; }
         
-        /* Khung Polaroid trang trí đè ngoài cùng */
-        #frame-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: fill; pointer-events: none; z-index: 3; }
+        /* Khung trang trí (khung.png) luôn giữ chuẩn tỷ lệ, không bao giờ bị dẹt */
+        #frame-img { 
+            position: absolute; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            object-fit: contain; /* Cốt lõi giúp ảnh không bị bóp méo ở mọi tỷ lệ màn hình */
+            pointer-events: none; 
+            z-index: 3; 
+        }
         
-        #status { position: absolute; top: 20px; left: 20px; background: rgba(0, 0, 0, 0.7); color: #0f0; padding: 10px 20px; border-radius: 30px; font-size: 16px; font-weight: bold; border: 1px solid #0f0; z-index: 4; }
+        #status { 
+            position: absolute; 
+            top: 15px; left: 15px; 
+            background: rgba(0, 0, 0, 0.75); 
+            color: #0f0; 
+            padding: 8px 16px; 
+            border-radius: 20px; 
+            font-size: 14px; 
+            font-weight: bold; 
+            border: 1px solid #0f0; 
+            z-index: 4; 
+        }
+
+        /* Tối ưu riêng cho màn hình điện thoại (Dọc) */
+        @media (max-width: 768px) {
+            .container {
+                width: 100vw;
+                height: 100vh;
+                max-width: 100%;
+                max-height: 100%;
+                border-radius: 0;
+            }
+            #status {
+                top: 10px; left: 10px;
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -33,7 +107,7 @@
     <!-- Ảnh hiệu ứng biểu cảm -->
     <img id="overlay-img" src="" alt="Effect">
     
-    <!-- Khung Polaroid bao bọc ngoài cùng -->
+    <!-- Khung Polaroid trang trí -->
     <img id="frame-img" src="khung.png" alt="Frame">
     
     <div id="status">ĐANG KHỞI ĐỘNG CAMERA...</div>
@@ -54,14 +128,12 @@
     let pendingAction = null;
     let stabilityCounter = 0;
 
-    // Bộ lọc ổn định riêng cho tay (Ảnh 6)
     let handStabilityCounter = 0;
-    const HAND_STABILITY_THRESHOLD = 5; // Cần giữ 5 frame
+    const HAND_STABILITY_THRESHOLD = 5;
 
     function updateDisplay(key) {
         if (!key) {
             stabilityCounter = 0;
-            // Xử lý làm mượt Ảnh 6 khi tắt
             if (currentAction === 'anh6') {
                 handStabilityCounter++;
                 if (handStabilityCounter >= HAND_STABILITY_THRESHOLD) {
@@ -85,8 +157,6 @@
 
         if (pendingAction === key) {
             stabilityCounter++;
-            
-            // Xử lý làm mượt Ảnh 6 khi bật
             if (key === 'anh6') {
                 if (stabilityCounter >= HAND_STABILITY_THRESHOLD && currentAction !== 'anh6') {
                     showEffect(key);
@@ -94,14 +164,13 @@
                 return;
             }
 
-            // Các ảnh khác giữ nguyên độ nhạy
             if (stabilityCounter >= 2 && currentAction !== key) {
                 showEffect(key);
             }
         } else {
             pendingAction = key;
             stabilityCounter = 1;
-            if (key !== 'anh6') handStabilityCounter = 0; // Reset bộ đếm tay nếu chuyển ảnh khác
+            if (key !== 'anh6') handStabilityCounter = 0;
         }
     }
 
@@ -139,11 +208,9 @@
 
             let detectedKey = null;
 
-            // 1. KIỂM TRA BÀN TAY (Ảnh 6 và Ảnh 7)
             if (resultsHands && resultsHands.multiHandLandmarks && resultsHands.multiHandLandmarks.length > 0) {
                 const handsData = resultsHands.multiHandLandmarks;
                 
-                // 2 tay đan/chạm nhau -> Ảnh 6
                 if (handsData.length >= 2) {
                     const dCổTay = Math.hypot(handsData[0][0].x - handsData[1][0].x, handsData[0][0].y - handsData[1][0].y);
                     if (dCổTay < 0.4) {
@@ -151,7 +218,6 @@
                     }
                 }
                 
-                // Chắp tay / 2 ngón tay chạm nhau -> Ảnh 7
                 if (!detectedKey) {
                     for (let hand of handsData) {
                         const indexTip = hand[8];
@@ -165,7 +231,6 @@
                 }
             }
 
-            // 2. KIỂM TRA KHUÔN MẶT (Ảnh 1, Ảnh 5, Ảnh 10)
             if (!detectedKey && resultsFace && resultsFace.multiFaceLandmarks && resultsFace.multiFaceLandmarks.length > 0) {
                 const l = resultsFace.multiFaceLandmarks[0];
                 const mouthOpen = Math.abs(l[13].y - l[14].y);
@@ -174,11 +239,11 @@
                 const eyeRight = Math.abs(l[386].y - l[374].y);
 
                 if (mouthOpen > 0.08) {
-                    detectedKey = 'anh5'; // Há miệng
+                    detectedKey = 'anh5';
                 } else if (lipDiff > 0.02) { 
-                    detectedKey = 'anh1'; // Cười / Nhếch môi
+                    detectedKey = 'anh1';
                 } else if (eyeLeft < 0.015 && eyeRight < 0.015) {
-                    detectedKey = 'anh10'; // Nhắm mắt
+                    detectedKey = 'anh10';
                 }
             }
 
