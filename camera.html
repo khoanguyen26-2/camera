@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gen Z Camera - Perfect Frame Overlay</title>
+    <title>Gen Z Camera - Fullscreen Frame</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
@@ -11,29 +11,25 @@
     <style>
         * { box-sizing: border-box; }
         body { 
-            margin: 0; padding: 0; background-color: #0b0f19; 
+            margin: 0; padding: 0; background-color: #000; 
             display: flex; justify-content: center; align-items: center; 
-            min-height: 100vh; overflow: hidden; font-family: sans-serif; color: white; 
+            height: 100vh; overflow: hidden; font-family: sans-serif; color: white; 
         }
 
-        /* Khung chứa chuẩn tỷ lệ ngang (4:3 hoặc 16:10 phù hợp với khung Polaroid) */
+        /* Khung chứa chiếm trọn màn hình */
         .container { 
             position: relative; 
-            width: 90vw; 
-            max-width: 900px; 
-            aspect-ratio: 4 / 3; /* Cố định tỷ lệ giúp khung và camera khớp hoàn hảo */
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
+            width: 100vw; 
+            height: 100vh; 
+            max-width: 100%; 
+            max-height: 100%; 
+            background: #000; 
             overflow: hidden; 
-            border-radius: 24px; 
-            background: #111827; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6); 
         }
 
         video { display: none; }
 
-        /* Canvas hiển thị camera lấp đầy 100% khung chứa */
+        /* Camera lấp đầy toàn bộ màn hình ở dưới cùng */
         canvas { 
             position: absolute;
             top: 0; left: 0;
@@ -41,14 +37,15 @@
             height: 100%; 
             object-fit: cover; 
             transform: scaleX(-1); 
+            z-index: 1; 
         }
         
-        /* Hiệu ứng biểu cảm/tay xuất hiện bên trong */
+        /* Hiệu ứng biểu cảm/tay hiển thị ở giữa */
         #overlay-img { 
             position: absolute; 
             top: 50%; left: 50%; 
             transform: translate(-50%, -50%); 
-            max-width: 65%; max-height: 65%; 
+            max-width: 50%; max-height: 50%; 
             display: none; 
             border-radius: 12px; 
             pointer-events: none; 
@@ -58,19 +55,20 @@
         }
         #overlay-img.show { display: block; opacity: 1; }
         
-        /* Khung trang trí bọc bên ngoài phủ kín tuyệt đối container */
+        /* Khung trang trí phủ kín tuyệt đối 100% màn hình, xóa bỏ khoảng trống thừa */
         #frame-img { 
             position: absolute; 
             top: 0; left: 0; 
-            width: 100%; height: 100%; 
-            object-fit: fill; /* Phủ kín hoàn toàn khung chứa mà không để khoảng trống */
+            width: 100%; 
+            height: 100%; 
+            object-fit: fill; /* Ép khung giãn nở khớp hoàn toàn viền màn hình */
             pointer-events: none; 
             z-index: 3; 
         }
         
         #status { 
             position: absolute; 
-            top: 15px; left: 15px; 
+            top: 20px; left: 20px; 
             background: rgba(0, 0, 0, 0.75); 
             color: #0f0; 
             padding: 8px 16px; 
@@ -79,23 +77,6 @@
             font-weight: bold; 
             border: 1px solid #0f0; 
             z-index: 4; 
-        }
-
-        /* Tối ưu cho màn hình điện thoại (Dọc) */
-        @media (max-width: 768px) {
-            .container {
-                width: 100vw;
-                height: 100vh;
-                max-width: 100%;
-                aspect-ratio: auto;
-                height: 100dvh;
-                border-radius: 0;
-            }
-            #status {
-                top: 10px; left: 10px;
-                font-size: 12px;
-                padding: 6px 12px;
-            }
         }
     </style>
 </head>
@@ -108,7 +89,7 @@
     <!-- Ảnh hiệu ứng biểu cảm -->
     <img id="overlay-img" src="" alt="Effect">
     
-    <!-- Khung Polaroid bọc ngoài -->
+    <!-- Khung Polaroid phủ trọn màn hình -->
     <img id="frame-img" src="khung.png" alt="Frame">
     
     <div id="status">ĐANG KHỞI ĐỘNG CAMERA...</div>
