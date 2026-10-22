@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gen Z Camera - Final Smooth & Sensitive</title>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    
+    <style>
+        body { margin: 0; padding: 0; background-color: #000; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; font-family: sans-serif; color: white;}
+        .container { position: relative; width: 100%; max-width: 900px; aspect-ratio: 16/9; overflow: hidden; border-radius: 20px; background: #1a1a1a; box-shadow: 0 0 40px rgba(0,0,0,0.6); }
+        video { display: none; }
+        canvas { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); border-radius: 20px; }
+        #overlay-img { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 80%; max-height: 80%; display: none; border-radius: 12px; pointer-events: none; opacity: 0; transition: opacity 0.05s ease-in-out; }
+        #overlay-img.show { display: block; opacity: 1; }
+        #status { position: absolute; top: 20px; left: 20px; background: rgba(0, 0, 0, 0.7); color: #0f0; padding: 10px 20px; border-radius: 30px; font-size: 16px; font-weight: bold; border: 1px solid #0f0;}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <video id="webcam" autoplay playsinline></video>
+    <canvas id="output_canvas"></canvas>
+    <img id="overlay-img" src="" alt="Effect">
+    <div id="status">ĐANG KHỞI ĐỘNG CAMERA...</div>
+</div>
+
+<script>
+    const videoElement = document.getElementById('webcam');
+    const canvasElement = document.getElementById('output_canvas');
+    const canvasCtx = canvasElement.getContext('2d');
+    const overlayImg = document.getElementById('overlay-img');
+    const statusDiv = document.getElementById('status');
+
+    const images = {
+        anh1: "anh1.png", anh5: "anh5.png", anh6: "anh6.png", anh7: "anh7.png", anh10: "anh10.png"
+    };
+
+    let currentAction = null;
+    let pendingAction = null;
+    let stabilityCounter = 0;
+
+    // Bộ lọc ổn định riêng cho tay (Ảnh 6)
+    let handStabilityCounter = 0;
+    const HAND_STABILITY_THRESHOLD = 5; // Cần giữ 5 frame
+
+    function updateDisplay(key) {
+        if (!key) {
+            stabilityCounter = 0;
+            // Xử lý làm mượt Ảnh 6 khi tắt
+            if (currentAction === 'anh6') {
+                handStabilityCounter++;
+                if (handStabilityCounter >= HAND_STABILITY_THRESHOLD) {
+                    currentAction = null;
+                    overlayImg.classList.remove('show');
+handStabilityCounter = 0;
+                }
+                return;
+            }
+
+            if (currentAction !== null) {
+                overlayImg.classList.remove('show');
+                statusDiv.innerText = "SẴN SÀNG! HÃY BIỂU CẢM HOẶC DÙNG TAY";
+                statusDiv.style.color = "#0f0";
+                statusDiv.style.borderColor = "#0f0";
+                currentAction = null;
+                pendingAction = null;
+            }
+            return;
+        }
+
+        if (pendingAction === key) {
+            stabilityCounter++;
+            
+            // Xử lý làm mượt Ảnh 6 khi bật
+            if (key === 'anh6') {
+                if (stabilityCounter >= HAND_STABILITY_THRESHOLD && currentAction !== 'anh6') {
+                    showEffect(key);
+                }
+                return;
+            }
+
+            // Các ảnh khác giữ nguyên độ nhạy
+            if (stabilityCounter >= 2 && currentAction !== key) {
+                showEffect(key);
+            }
+        } else {
+            pendingAction = key;
+            stabilityCounter = 1;
+            if (key !== 'anh6') handStabilityCounter = 0; // Reset bộ đếm tay nếu chuyển ảnh khác
+        }
+    }
+
+    function showEffect(key) {
+        overlayImg.src = images[key];
+        overlayImg.classList.add('show');
+        statusDiv.innerText = `ĐANG HIỂN THỊ: ${key.toUpperCase()}`;
+        statusDiv.style.color = "#ff0";
+        statusDiv.style.borderColor = "#ff0";
+        currentAction = key;
+    }
+
+    let resultsFace = null;
+    let resultsHands = null;
+
+    const faceMesh = new FaceMesh({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`});
+    faceMesh.setOptions({ maxNumFaces: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+    faceMesh.onResults((results) => { resultsFace = results; });
+
+    const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+    hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+    hands.onResults((results) => { resultsHands = results; });
+
+    const camera = new Camera(videoElement, {
+        onFrame: async () => {
+            canvasElement.width = videoElement.videoWidth;
+            canvasElement.height = videoElement.videoHeight;
+            
+            await hands.send({image: videoElement});
+            await faceMesh.send({image: videoElement});
+
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+            canvasCtx.drawImage(resultsFace?.image || resultsHands?.image || videoElement, 0, 0, canvasElement.width, canvasElement.height);
+
+            let detectedKey = null;
+
+            // 1. KIỂM TRA BÀN TAY (Ảnh 6 và Ảnh 7)
+            if (resultsHands && resultsHands.multiHandLandmarks && resultsHands.multiHandLandmarks.length > 0) {
+const handsData = resultsHands.multiHandLandmarks;
+                
+                // 2 tay đan/chạm nhau -> Ảnh 6 (Nới rộng khoảng cách lên 0.4 cho cực nhạy)
+                if (handsData.length >= 2) {
+                    const dCổTay = Math.hypot(handsData[0][0].x - handsData[1][0].x, handsData[0][0].y - handsData[1][0].y);
+                    if (dCổTay < 0.4) {
+                        detectedKey = 'anh6';
+                    }
+                }
+                
+                // Chắp tay / 2 ngón tay chạm nhau -> Ảnh 7
+                if (!detectedKey) {
+                    for (let hand of handsData) {
+                        const indexTip = hand[8];
+                        const middleTip = hand[12];
+                        const dIndexMiddle = Math.hypot(indexTip.x - middleTip.x, indexTip.y - middleTip.y);
+                        if (indexTip.y < hand[6].y && middleTip.y < hand[10].y && dIndexMiddle < 0.08) {
+                            detectedKey = 'anh7';
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // 2. KIỂM TRA KHUÔN MẶT (Ảnh 1, Ảnh 5, Ảnh 10)
+            if (!detectedKey && resultsFace && resultsFace.multiFaceLandmarks && resultsFace.multiFaceLandmarks.length > 0) {
+                const l = resultsFace.multiFaceLandmarks[0];
+                const mouthOpen = Math.abs(l[13].y - l[14].y);
+                const lipDiff = Math.abs(l[61].y - l[291].y);
+                const eyeLeft = Math.abs(l[159].y - l[145].y);
+                const eyeRight = Math.abs(l[386].y - l[374].y);
+
+                if (mouthOpen > 0.08) {
+                    detectedKey = 'anh5'; // Há miệng
+                } else if (lipDiff > 0.02) { 
+                    detectedKey = 'anh1'; // Cười / Nhếch môi (SIÊU NHẠY)
+                } else if (eyeLeft < 0.015 && eyeRight < 0.015) {
+                    detectedKey = 'anh10'; // Nhắm mắt
+                }
+            }
+
+            updateDisplay(detectedKey);
+            canvasCtx.restore();
+        },
+        width: 1280,
+        height: 720
+    });
+
+    camera.start()
+        .then(() => { statusDiv.innerText = "CAMERA ĐÃ SẴN SÀNG!"; })
+        .catch(err => { statusDiv.innerText = "LỖI CAMERA: " + err; statusDiv.style.color = "red";});
+</script>
+
+</body>
+</html>
