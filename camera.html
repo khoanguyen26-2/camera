@@ -86,17 +86,19 @@
           Khung Polaroid phủ toàn bộ container thay vì phóng to 320%.
           Nên dùng khung PNG có nền trong suốt và tỷ lệ gần 16:10.
         */
-        #frame-img {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            pointer-events: none;
-            z-index: 3;
-        }
+        /* KHUNG POLAROID 290% - CĂN CHÍNH GIỮA */
+#frame-img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 290%;
+    height: 290%;
+    object-fit: contain;
+    object-position: center;
+    pointer-events: none;
+    z-index: 3;
+}
 
         #status {
             position: absolute;
