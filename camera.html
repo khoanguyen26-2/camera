@@ -44,30 +44,30 @@
             display: none;
         }
 
-        /*
-          Vùng camera nằm bên trong cửa sổ của khung Polaroid.
-          Nếu cửa sổ trong khung PNG của bạn khác vị trí, tinh chỉnh 4 giá trị này.
+        /* 
+          ĐÃ CĂN CHỈNH: Tỷ lệ & Tọa độ Camera (canvas) nằm khớp tuyệt đối
+          vào lòng ô trắng của khung Polaroid khi khung ở mức 300% x 270%.
         */
-       canvas {
-    position: absolute;
-    top: 27%;
-    left: 29%;
-    width: 42%;
-    height: 46%;
-    object-fit: cover;
-    transform: scaleX(-1);
-    border-radius: 4px;
-    z-index: 1;
-}
+        canvas {
+            position: absolute;
+            top: 29.5%;
+            left: 21.5%;
+            width: 57%;
+            height: 52%;
+            object-fit: cover;
+            transform: scaleX(-1);
+            border-radius: 4px;
+            z-index: 1;
+        }
 
         /* Ảnh hiệu ứng được đặt ở giữa vùng camera */
         #overlay-img {
             position: absolute;
-            top: 42%;
-            left: 53%;
+            top: 55%;
+            left: 50%;
             transform: translate(-50%, -50%);
-            max-width: 30%;
-            max-height: 30%;
+            max-width: 35%;
+            max-height: 35%;
             display: none;
             border-radius: 8px;
             pointer-events: none;
@@ -81,23 +81,19 @@
             opacity: 1;
         }
 
-        /*
-          Khung Polaroid phủ toàn bộ container thay vì phóng to 320%.
-          Nên dùng khung PNG có nền trong suốt và tỷ lệ gần 16:10.
-        */
-        /* KHUNG POLAROID 290% - CĂN CHÍNH GIỮA */
-#frame-img {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 300%;
-    height: 270%;
-    object-fit: contain;
-    object-position: center;
-    pointer-events: none;
-    z-index: 3;
-}
+        /* KHUNG POLAROID 300% x 270% - CĂN CHÍNH GIỮA */
+        #frame-img {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300%;
+            height: 270%;
+            object-fit: contain;
+            object-position: center;
+            pointer-events: none;
+            z-index: 3;
+        }
 
         #status {
             position: absolute;
@@ -122,16 +118,16 @@
                 border-radius: 0;
             }
 
-            #output_canvas {
-                top: 35%;
-                left: 12%;
-                width: 80%;
-                height: 29%;
+            canvas {
+                top: 31%;
+                left: 16%;
+                width: 68%;
+                height: 38%;
             }
 
             #overlay-img {
-                left: 52%;
-                top: 49%;
+                left: 50%;
+                top: 50%;
             }
 
             #status {
