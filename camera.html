@@ -3,93 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gen Z Camera - Polaroid Frame 320%</title>
+    <title>Gen Z Camera - Polaroid Frame</title>
+
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
-    
+
     <style>
-        * { box-sizing: border-box; }
-        body { 
-            margin: 0; padding: 0; background-color: #05080f; 
-            display: flex; justify-content: center; align-items: center; 
-            min-height: 100vh; overflow: hidden; font-family: sans-serif; color: white; 
+        * {
+            box-sizing: border-box;
         }
 
-        .container { 
-            position: relative; 
-            width: 95vw; 
-            max-width: 900px; 
-            aspect-ratio: 16 / 10; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            overflow: hidden; 
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #05080f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            font-family: sans-serif;
+            color: white;
+        }
+
+        .container {
+            position: relative;
+            width: 95vw;
+            max-width: 900px;
+            aspect-ratio: 16 / 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
             background: #000;
             border-radius: 20px;
         }
 
-        video { display: none; }
+        video {
+            display: none;
+        }
 
-        /* Màn hình camera (canvas) được căn chỉnh khớp hoàn hảo vào ô trắng của khung 320% */
-        canvas { 
+        /*
+          Vùng camera nằm bên trong cửa sổ của khung Polaroid.
+          Nếu cửa sổ trong khung PNG của bạn khác vị trí, tinh chỉnh 4 giá trị này.
+        */
+        #output_canvas {
             position: absolute;
-            top: 27%;   
-            left: 29%;  
-            width: 42%; 
-            height: 46%;
-            object-fit: cover; 
-            transform: scaleX(-1); 
-            border-radius: 4px; 
-            z-index: 1; 
+            top: 2%;
+            left: 9%;
+            width: 88%;
+            height: 80%;
+            object-fit: cover;
+            transform: scaleX(-1);
+            border-radius: 3px;
+            z-index: 1;
         }
-        
-        /* Hiệu ứng biểu cảm/tay hiển thị bên trong vùng camera */
-        #overlay-img { 
-            position: absolute; 
-            top: 50%; left: 50%; 
-            transform: translate(-50%, -50%); 
-            max-width: 30%; max-height: 30%; 
-            display: none; 
-            border-radius: 8px; 
-            pointer-events: none; 
-            opacity: 0; 
-            transition: opacity 0.05s ease-in-out; 
-            z-index: 2; 
-        }
-        #overlay-img.show { display: block; opacity: 1; }
-        
-        /* KHUNG POLAROID: Đã chỉnh về mức 320% */
-        #frame-img { 
-            position: absolute; 
-            top: 50%; 
-            left: 50%; 
+
+        /* Ảnh hiệu ứng được đặt ở giữa vùng camera */
+        #overlay-img {
+            position: absolute;
+            top: 42%;
+            left: 53%;
             transform: translate(-50%, -50%);
-            width: 320%;  /* Khung 320% */
-            height: 320%; 
-            object-fit: contain; 
-            pointer-events: none; 
-            z-index: 3; 
+            max-width: 30%;
+            max-height: 30%;
+            display: none;
+            border-radius: 8px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.05s ease-in-out;
+            z-index: 2;
         }
-        
-        #status { 
-            position: absolute; 
-            top: 15px; left: 15px; 
-            background: rgba(0, 0, 0, 0.75); 
-            color: #0f0; 
-            padding: 8px 16px; 
-            border-radius: 20px; 
-            font-size: 14px; 
-            font-weight: bold; 
-            border: 1px solid #0f0; 
-            z-index: 4; 
+
+        #overlay-img.show {
+            display: block;
+            opacity: 1;
+        }
+
+        /*
+          Khung Polaroid phủ toàn bộ container thay vì phóng to 320%.
+          Nên dùng khung PNG có nền trong suốt và tỷ lệ gần 16:10.
+        */
+        #frame-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: fill;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        #status {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(0, 0, 0, 0.75);
+            color: #0f0;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            border: 1px solid #0f0;
+            z-index: 4;
         }
 
         @media (max-width: 768px) {
             .container {
                 width: 100vw;
                 height: 100vh;
+                max-width: none;
+                aspect-ratio: auto;
                 border-radius: 0;
+            }
+
+            #output_canvas {
+                top: 2%;
+                left: 7%;
+                width: 91%;
+                height: 80%;
+            }
+
+            #overlay-img {
+                left: 52.5%;
+                top: 42%;
+            }
+
+            #status {
+                top: 12px;
+                left: 12px;
+                font-size: 12px;
+                padding: 7px 12px;
             }
         }
     </style>
@@ -98,16 +143,16 @@
 
 <div class="container">
     <video id="webcam" autoplay playsinline></video>
-    
-    <!-- Canvas camera nằm bên dưới khung -->
+
+    <!-- Hình ảnh camera nằm bên dưới lớp khung -->
     <canvas id="output_canvas"></canvas>
-    
-    <!-- Ảnh hiệu ứng biểu cảm -->
+
+    <!-- Ảnh hiệu ứng biểu cảm / cử chỉ tay -->
     <img id="overlay-img" src="" alt="Effect">
-    
-    <!-- Khung Polaroid 320% bọc ngoài -->
-    <img id="frame-img" src="khung.png" alt="Frame">
-    
+
+    <!-- Khung Polaroid nằm trên camera -->
+    <img id="frame-img" src="khung.png" alt="Polaroid frame">
+
     <div id="status">ĐANG KHỞI ĐỘNG CAMERA...</div>
 </div>
 
@@ -119,24 +164,34 @@
     const statusDiv = document.getElementById('status');
 
     const images = {
-        anh1: "anh1.png", anh5: "anh5.png", anh6: "anh6.png", anh7: "anh7.png", anh10: "anh10.png"
+        anh1: "anh1.png",
+        anh5: "anh5.png",
+        anh6: "anh6.png",
+        anh7: "anh7.png",
+        anh10: "anh10.png"
     };
 
     let currentAction = null;
     let pendingAction = null;
     let stabilityCounter = 0;
-
     let handStabilityCounter = 0;
+
     const HAND_STABILITY_THRESHOLD = 5;
 
     function updateDisplay(key) {
         if (!key) {
             stabilityCounter = 0;
+
             if (currentAction === 'anh6') {
                 handStabilityCounter++;
+
                 if (handStabilityCounter >= HAND_STABILITY_THRESHOLD) {
                     currentAction = null;
+                    pendingAction = null;
                     overlayImg.classList.remove('show');
+                    statusDiv.innerText = "SẴN SÀNG! HÃY BIỂU CẢM HOẶC DÙNG TAY";
+                    statusDiv.style.color = "#0f0";
+                    statusDiv.style.borderColor = "#0f0";
                     handStabilityCounter = 0;
                 }
                 return;
@@ -155,6 +210,7 @@
 
         if (pendingAction === key) {
             stabilityCounter++;
+
             if (key === 'anh6') {
                 if (stabilityCounter >= HAND_STABILITY_THRESHOLD && currentAction !== 'anh6') {
                     showEffect(key);
@@ -168,60 +224,121 @@
         } else {
             pendingAction = key;
             stabilityCounter = 1;
-            if (key !== 'anh6') handStabilityCounter = 0;
+
+            if (key !== 'anh6') {
+                handStabilityCounter = 0;
+            }
         }
     }
 
     function showEffect(key) {
         overlayImg.src = images[key];
         overlayImg.classList.add('show');
+
         statusDiv.innerText = `ĐANG HIỂN THỊ: ${key.toUpperCase()}`;
         statusDiv.style.color = "#ff0";
         statusDiv.style.borderColor = "#ff0";
+
         currentAction = key;
     }
 
     let resultsFace = null;
     let resultsHands = null;
 
-    const faceMesh = new FaceMesh({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`});
-    faceMesh.setOptions({ maxNumFaces: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
-    faceMesh.onResults((results) => { resultsFace = results; });
+    const faceMesh = new FaceMesh({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+    });
 
-    const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
-    hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
-    hands.onResults((results) => { resultsHands = results; });
+    faceMesh.setOptions({
+        maxNumFaces: 1,
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5
+    });
+
+    faceMesh.onResults((results) => {
+        resultsFace = results;
+    });
+
+    const hands = new Hands({
+        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+    });
+
+    hands.setOptions({
+        maxNumHands: 2,
+        modelComplexity: 1,
+        minDetectionConfidence: 0.5,
+        minTrackingConfidence: 0.5
+    });
+
+    hands.onResults((results) => {
+        resultsHands = results;
+    });
 
     const camera = new Camera(videoElement, {
         onFrame: async () => {
-            canvasElement.width = videoElement.videoWidth;
-            canvasElement.height = videoElement.videoHeight;
-            
-            await hands.send({image: videoElement});
-            await faceMesh.send({image: videoElement});
+            if (!videoElement.videoWidth || !videoElement.videoHeight) {
+                return;
+            }
+
+            if (
+                canvasElement.width !== videoElement.videoWidth ||
+                canvasElement.height !== videoElement.videoHeight
+            ) {
+                canvasElement.width = videoElement.videoWidth;
+                canvasElement.height = videoElement.videoHeight;
+            }
+
+            await hands.send({ image: videoElement });
+            await faceMesh.send({ image: videoElement });
 
             canvasCtx.save();
             canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-            canvasCtx.drawImage(resultsFace?.image || resultsHands?.image || videoElement, 0, 0, canvasElement.width, canvasElement.height);
+            canvasCtx.drawImage(
+                resultsFace?.image || resultsHands?.image || videoElement,
+                0,
+                0,
+                canvasElement.width,
+                canvasElement.height
+            );
 
             let detectedKey = null;
 
-            if (resultsHands && resultsHands.multiHandLandmarks && resultsHands.multiHandLandmarks.length > 0) {
+            // Nhận diện cử chỉ tay
+            if (
+                resultsHands &&
+                resultsHands.multiHandLandmarks &&
+                resultsHands.multiHandLandmarks.length > 0
+            ) {
                 const handsData = resultsHands.multiHandLandmarks;
-                
+
+                // Hai cổ tay gần nhau: anh6
                 if (handsData.length >= 2) {
-                    const dCổTay = Math.hypot(handsData[0][0].x - handsData[1][0].x, handsData[0][0].y - handsData[1][0].y);
-                    if (dCổTay < 0.4) {
+                    const wristDistance = Math.hypot(
+                        handsData[0][0].x - handsData[1][0].x,
+                        handsData[0][0].y - handsData[1][0].y
+                    );
+
+                    if (wristDistance < 0.4) {
                         detectedKey = 'anh6';
                     }
                 }
-                
+
+                // Ngón trỏ và ngón giữa hướng lên, đầu ngón gần nhau: anh7
                 if (!detectedKey) {
-                    for (let hand of handsData) {
+                    for (const hand of handsData) {
                         const indexTip = hand[8];
                         const middleTip = hand[12];
-                        const dIndexMiddle = Math.hypot(indexTip.x - middleTip.x, indexTip.y - middleTip.y);
-                        if (indexTip.y < hand[6].y && middleTip.y < hand[10].y && dIndexMiddle < 0.08) {
+
+                        const indexMiddleDistance = Math.hypot(
+                            indexTip.x - middleTip.x,
+                            indexTip.y - middleTip.y
+                        );
+
+                        if (
+                            indexTip.y < hand[6].y &&
+                            middleTip.y < hand[10].y &&
+                            indexMiddleDistance < 0.08
+                        ) {
                             detectedKey = 'anh7';
                             break;
                         }
@@ -229,16 +346,23 @@
                 }
             }
 
-            if (!detectedKey && resultsFace && resultsFace.multiFaceLandmarks && resultsFace.multiFaceLandmarks.length > 0) {
-                const l = resultsFace.multiFaceLandmarks[0];
-                const mouthOpen = Math.abs(l[13].y - l[14].y);
-                const lipDiff = Math.abs(l[61].y - l[291].y);
-                const eyeLeft = Math.abs(l[159].y - l[145].y);
-                const eyeRight = Math.abs(l[386].y - l[374].y);
+            // Nhận diện biểu cảm khuôn mặt nếu chưa nhận diện được cử chỉ tay
+            if (
+                !detectedKey &&
+                resultsFace &&
+                resultsFace.multiFaceLandmarks &&
+                resultsFace.multiFaceLandmarks.length > 0
+            ) {
+                const landmarks = resultsFace.multiFaceLandmarks[0];
+
+                const mouthOpen = Math.abs(landmarks[13].y - landmarks[14].y);
+                const lipDiff = Math.abs(landmarks[61].y - landmarks[291].y);
+                const eyeLeft = Math.abs(landmarks[159].y - landmarks[145].y);
+                const eyeRight = Math.abs(landmarks[386].y - landmarks[374].y);
 
                 if (mouthOpen > 0.08) {
                     detectedKey = 'anh5';
-                } else if (lipDiff > 0.02) { 
+                } else if (lipDiff > 0.02) {
                     detectedKey = 'anh1';
                 } else if (eyeLeft < 0.015 && eyeRight < 0.015) {
                     detectedKey = 'anh10';
@@ -253,8 +377,14 @@
     });
 
     camera.start()
-        .then(() => { statusDiv.innerText = "CAMERA ĐÃ SẴN SÀNG!"; })
-        .catch(err => { statusDiv.innerText = "LỖI CAMERA: " + err; statusDiv.style.color = "red";});
+        .then(() => {
+            statusDiv.innerText = "CAMERA ĐÃ SẴN SÀNG!";
+        })
+        .catch((err) => {
+            statusDiv.innerText = "LỖI CAMERA: " + err;
+            statusDiv.style.color = "red";
+            statusDiv.style.borderColor = "red";
+        });
 </script>
 
 </body>
