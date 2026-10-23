@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gen Z Camera - Big Polaroid Frame</title>
+    <title>Gen Z Camera - Mega Polaroid Frame</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
@@ -31,13 +31,13 @@
 
         video { display: none; }
 
-        /* Màn hình camera (canvas) được đặt chuẩn xác nằm lọt thỏm vào ô trắng của khung to */
+        /* Màn hình camera (canvas) được căn chỉnh khớp hoàn hảo vào ô trắng của khung cực đại */
         canvas { 
             position: absolute;
-            top: 28%;   
-            left: 31%;  
-            width: 38%; 
-            height: 44%;
+            top: 31%;   
+            left: 33%;  
+            width: 34%; 
+            height: 38%;
             object-fit: cover; 
             transform: scaleX(-1); 
             border-radius: 4px; 
@@ -49,7 +49,7 @@
             position: absolute; 
             top: 50%; left: 50%; 
             transform: translate(-50%, -50%); 
-            max-width: 30%; max-height: 30%; 
+            max-width: 25%; max-height: 25%; 
             display: none; 
             border-radius: 8px; 
             pointer-events: none; 
@@ -59,14 +59,14 @@
         }
         #overlay-img.show { display: block; opacity: 1; }
         
-        /* KHUNG POLAROID: Đã phóng to lên 230% bọc ra bên ngoài camera */
+        /* KHUNG POLAROID: Đã phóng to lên 380% bao trùm toàn bộ bên ngoài */
         #frame-img { 
             position: absolute; 
             top: 50%; 
             left: 50%; 
             transform: translate(-50%, -50%);
-            width: 230%;  /* Phóng to khung bự vượt trội hơn hẳn */
-            height: 230%; 
+            width: 380%;  /* Phóng to khủng 380% */
+            height: 380%; 
             object-fit: contain; 
             pointer-events: none; 
             z-index: 3; 
@@ -105,7 +105,7 @@
     <!-- Ảnh hiệu ứng biểu cảm -->
     <img id="overlay-img" src="" alt="Effect">
     
-    <!-- Khung Polaroid phóng to bọc ngoài -->
+    <!-- Khung Polaroid phóng to siêu khủng bọc ngoài -->
     <img id="frame-img" src="khung.png" alt="Frame">
     
     <div id="status">ĐANG KHỞI ĐỘNG CAMERA...</div>
